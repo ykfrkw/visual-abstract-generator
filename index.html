@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Abstract Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/styles/main.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ===== HEADER ===== -->
+    <header class="app-header">
+      <h1>Visual Abstract Generator</h1>
+    </header>
+
+    <!-- ===== MAIN LAYOUT ===== -->
+    <div class="app-body">
+
+      <!-- ===== LEFT PANEL: FORM ===== -->
+      <aside class="form-panel">
+
+        <!-- Mode toggle tabs -->
+        <div class="mode-tabs">
+          <button id="btn-mode-form"     class="mode-tab mode-tab-active">Form</button>
+          <button id="btn-mode-markdown" class="mode-tab">Markdown / YAML</button>
+        </div>
+
+        <!-- Markdown paste pane (hidden by default) -->
+        <div id="markdown-pane" class="hidden">
+          <p class="section-hint" style="line-height:1.6">
+            The YAML frontmatter (the block enclosed in <code>---</code>) is applied to the Visual Abstract.<br>
+            Everything below it is a free-text notes area and will not be applied.
+          </p>
+          <textarea id="f-markdown-input" style="flex:1;font-family:monospace;font-size:11px;line-height:1.5;resize:none;border:1px solid var(--border);border-radius:6px;padding:8px;" placeholder="---&#10;title: &quot;...&quot;&#10;---&#10;&#10;## Notes"></textarea>
+          <button id="btn-md-apply" class="btn-export btn-export-primary" style="flex-shrink:0">
+            ◀ Apply to form
+          </button>
+        </div>
+
+        <div id="form-scroll-inner" class="form-scroll">
+
+          <div class="form-clear-bar">
+            <button id="btn-clear-all" class="btn-clear">Clear all data</button>
+          </div>
+
+          <!-- Section: Paper Info -->
+          <section class="form-section">
+            <h2 class="section-title">Paper Info</h2>
+
+            <label class="form-label">
+              Title <span class="hint">(max 120 chars)</span>
+              <input type="text" id="f-title" maxlength="120"
+                placeholder="Short title for the visual abstract" />
+            </label>
+
+            <label class="form-label">
+              Authors
+              <input type="text" id="f-authors" maxlength="80"
+                placeholder="Furukawa Y, et al." />
+            </label>
+
+            <div class="form-row">
+              <label class="form-label">
+                Journal
+                <input type="text" id="f-journal" maxlength="40"
+                  placeholder="J Affect Disord" />
+              </label>
+              <label class="form-label">
+                Year
+                <input type="number" id="f-year" min="2000" max="2099"
+                  placeholder="2026" />
+              </label>
+            </div>
+
+            <label class="form-label">
+              DOI <span class="hint">(optional)</span>
+              <input type="text" id="f-doi" maxlength="80"
+                placeholder="10.1016/j.jad.2024.09.017" />
+            </label>
+
+            <label class="form-label">
+              Creator name <span class="hint">(shown in footer)</span>
+              <input type="text" id="f-creator-name" maxlength="60"
+                placeholder="Furukawa Y" />
+            </label>
+          </section>
+
+          <!-- Section: Summary -->
+          <section class="form-section">
+            <h2 class="section-title">Summary</h2>
+
+            <label class="form-label">
+              Key finding <span class="hint">(max 250 chars)</span>
+              <textarea id="f-conclusion" maxlength="250" rows="3"
+                placeholder="CBT-I significantly improves sleep outcomes in adults with chronic insomnia."></textarea>
+            </label>
+
+            <label class="form-label">
+              Key limitations <span class="hint">(optional · ⚠️ shown at bottom of canvas)</span>
+              <textarea id="f-key-limitations" maxlength="200" rows="3"
+                placeholder="e.g. High heterogeneity; mostly face-to-face CBT-I; short follow-up"></textarea>
+            </label>
+          </section>
+
+          <!-- Section: Study Design -->
+          <section class="form-section">
+            <h2 class="section-title">Study Design</h2>
+
+            <label class="form-label">
+              Design type
+              <input type="text" id="f-study-design-type"
+                placeholder="Systematic review and meta-analysis" />
+            </label>
+
+            <label class="form-label">
+              Detail <span class="hint">(shown on 2nd line, e.g. "19 RCTs")</span>
+              <input type="text" id="f-study-design-detail"
+                placeholder="19 RCTs" />
+            </label>
+
+            <div class="form-row">
+              <label class="form-label">
+                N trials
+                <input type="number" id="f-n-studies" min="1"
+                  placeholder="19" />
+              </label>
+              <label class="form-label">
+                N participants
+                <input type="text" id="f-n-participants"
+                  placeholder="4,808" />
+              </label>
+            </div>
+          </section>
+
+          <!-- Section: Population -->
+          <section class="form-section">
+            <h2 class="section-title">Population</h2>
+
+            <label class="form-label">
+              Description
+              <input type="text" id="f-population" maxlength="120"
+                placeholder="Adults with depression and insomnia" />
+            </label>
+
+            <label class="form-label">
+              Details <span class="hint">(age, % women, etc.)</span>
+              <input type="text" id="f-population-detail" maxlength="120"
+                placeholder="4808 participants, mean 33 years, 73% women" />
+            </label>
+
+            <label class="form-label">
+              Population image <span class="hint">(optional · right of Study Design/Population)</span>
+              <input type="file" id="f-population-image" accept="image/*" class="input-file" />
+              <button type="button" id="btn-remove-bg-population" class="btn-remove-bg">✂ Remove background</button>
+              <label class="crop-toggle">
+                <input type="checkbox" id="f-population-image-fill" />
+                Fill slot (crop)
+              </label>
+              <div class="img-offset-row">
+                <label>X <input type="number" id="f-population-image-dx" value="0" class="offset-input" /></label>
+                <label>Y <input type="number" id="f-population-image-dy" value="0" class="offset-input" /></label>
+                <span class="offset-hint">px offset</span>
+              </div>
+            </label>
+          </section>
+
+          <!-- Section: Comparison -->
+          <section class="form-section">
+            <h2 class="section-title">Comparison</h2>
+
+            <label class="form-label">
+              Intervention
+              <input type="text" id="f-intervention" maxlength="120"
+                placeholder="Cognitive Behavioural Therapy for Insomnia" />
+            </label>
+
+            <label class="form-label">
+              Abbreviation <span class="hint">(optional, shown bold)</span>
+              <input type="text" id="f-intervention-abbr" maxlength="20"
+                placeholder="CBT-I" />
+            </label>
+
+            <label class="form-label">
+              Detail <span class="hint">(JAMA: shown inside box)</span>
+              <input type="text" id="f-intervention-detail" maxlength="120"
+                placeholder="Including sleep restriction or stimulus control" />
+            </label>
+
+            <label class="form-label">
+              Intervention image <span class="hint">(optional · right side of box)</span>
+              <input type="file" id="f-intervention-image" accept="image/*" class="input-file" />
+              <button type="button" id="btn-remove-bg-intervention" class="btn-remove-bg">✂ Remove background</button>
+              <label class="crop-toggle">
+                <input type="checkbox" id="f-intervention-image-fill" />
+                Fill slot (crop)
+              </label>
+              <div class="img-offset-row">
+                <label>X <input type="number" id="f-intervention-image-dx" value="0" class="offset-input" /></label>
+                <label>Y <input type="number" id="f-intervention-image-dy" value="0" class="offset-input" /></label>
+                <span class="offset-hint">px offset</span>
+              </div>
+            </label>
+
+            <label class="form-label">
+              Control
+              <input type="text" id="f-comparator" maxlength="120"
+                placeholder="Waitlist control / TAU / Placebo" />
+            </label>
+
+            <label class="form-label">
+              Control detail <span class="hint">(JAMA: shown inside box)</span>
+              <input type="text" id="f-comparator-detail" maxlength="120"
+                placeholder="Waitlist / treatment as usual" />
+            </label>
+
+            <label class="form-label">
+              Control image <span class="hint">(optional · right side of box)</span>
+              <input type="file" id="f-control-image" accept="image/*" class="input-file" />
+              <button type="button" id="btn-remove-bg-control" class="btn-remove-bg">✂ Remove background</button>
+              <label class="crop-toggle">
+                <input type="checkbox" id="f-control-image-fill" />
+                Fill slot (crop)
+              </label>
+              <div class="img-offset-row">
+                <label>X <input type="number" id="f-control-image-dx" value="0" class="offset-input" /></label>
+                <label>Y <input type="number" id="f-control-image-dy" value="0" class="offset-input" /></label>
+                <span class="offset-hint">px offset</span>
+              </div>
+            </label>
+          </section>
+
+          <!-- Section: Outcomes (SoF table) -->
+          <section class="form-section">
+            <h2 class="section-title">Outcomes</h2>
+            <p class="section-hint">Up to 5 · CER/EER: e.g. "24 per 100" · check Primary for key outcomes</p>
+
+            <div id="sof-rows"></div>
+            <button id="btn-add-outcome" class="btn-secondary btn-sm">
+              + Add outcome
+            </button>
+          </section>
+
+          <!-- Section: Custom Sections -->
+          <section class="form-section">
+            <h2 class="section-title">Custom Sections</h2>
+            <p class="section-hint">Up to 3 · rendered below the Outcomes table</p>
+
+            <div id="custom-section-rows"></div>
+            <button id="btn-add-custom-section" class="btn-secondary btn-sm">
+              + Add section
+            </button>
+          </section>
+
+        </div><!-- /form-scroll-inner -->
+      </aside>
+
+      <!-- ===== CENTER: CANVAS PREVIEW ===== -->
+      <main class="canvas-panel">
+        <!-- View mode toggle (top-right) -->
+        <div class="view-toggle-bar">
+          <button id="btn-view-pc" class="view-toggle-btn view-toggle-active">PC</button>
+          <button id="btn-view-sp" class="view-toggle-btn">SP</button>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="va-canvas"></canvas>
+        </div>
+      </main>
+
+      <!-- ===== RIGHT PANEL: SETTINGS + EXPORT ===== -->
+      <aside class="export-panel">
+
+        <section class="form-section">
+          <h2 class="section-title">Template</h2>
+          <div class="template-selector">
+            <button class="btn-template active" data-template="bmj">BMJ-like</button>
+            <button class="btn-template" data-template="jama">JAMA-like</button>
+          </div>
+          <label class="checkbox-label" style="margin-top:10px">
+            <input type="checkbox" id="f-rounded-corners" checked />
+            Rounded corners
+          </label>
+        </section>
+
+        <section class="form-section" id="section-jama-findings" style="display:none">
+          <h2 class="section-title">Findings</h2>
+          <select id="f-jama-findings-mode" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px">
+            <option value="donut" selected>Donut chart</option>
+            <option value="sof">SoF table</option>
+          </select>
+        </section>
+
+        <section class="form-section">
+          <h2 class="section-title">Color</h2>
+          <div id="palette-swatches" style="display:flex;flex-direction:column;gap:5px">
+            <div class="palette-swatch active" data-palette="classic" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 6px;border-radius:6px;border:2px solid #3B82F6">
+              <div style="width:16px;height:16px;border-radius:3px;background:#1A3A5C;flex-shrink:0"></div>
+              <div style="display:flex;gap:3px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#2A8B85"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#B5337A"></div>
+              </div>
+              <span style="font-size:11px;color:#6b7280">Classic</span>
+            </div>
+            <div class="palette-swatch" data-palette="crimson" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 6px;border-radius:6px;border:2px solid transparent">
+              <div style="width:16px;height:16px;border-radius:3px;background:#8B1A2A;flex-shrink:0"></div>
+              <div style="display:flex;gap:3px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#1D6FA4"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#E07B39"></div>
+              </div>
+              <span style="font-size:11px;color:#6b7280">Crimson</span>
+            </div>
+            <div class="palette-swatch" data-palette="forest" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 6px;border-radius:6px;border:2px solid transparent">
+              <div style="width:16px;height:16px;border-radius:3px;background:#1A4D2E;flex-shrink:0"></div>
+              <div style="display:flex;gap:3px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#2A7D55"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#8B4A1A"></div>
+              </div>
+              <span style="font-size:11px;color:#6b7280">Forest</span>
+            </div>
+            <div class="palette-swatch" data-palette="violet" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 6px;border-radius:6px;border:2px solid transparent">
+              <div style="width:16px;height:16px;border-radius:3px;background:#4A1A7C;flex-shrink:0"></div>
+              <div style="display:flex;gap:3px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#6A4A9C"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#9C4A6A"></div>
+              </div>
+              <span style="font-size:11px;color:#6b7280">Violet</span>
+            </div>
+            <div class="palette-swatch" data-palette="slate" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 6px;border-radius:6px;border:2px solid transparent">
+              <div style="width:16px;height:16px;border-radius:3px;background:#2D3748;flex-shrink:0"></div>
+              <div style="display:flex;gap:3px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#2B6CB0"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#C05621"></div>
+              </div>
+              <span style="font-size:11px;color:#6b7280">Slate</span>
+            </div>
+            <div class="palette-swatch" data-palette="custom" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 6px;border-radius:6px;border:2px solid transparent">
+              <div id="custom-swatch-main" style="width:16px;height:16px;border-radius:3px;background:#1A3A5C;flex-shrink:0"></div>
+              <div style="display:flex;gap:3px">
+                <div id="custom-swatch-interv" style="width:10px;height:10px;border-radius:50%;background:#2A8B85"></div>
+                <div id="custom-swatch-ctrl" style="width:10px;height:10px;border-radius:50%;background:#B5337A"></div>
+              </div>
+              <span style="font-size:11px;color:#6b7280">Custom</span>
+            </div>
+            <div id="custom-color-pickers" style="display:none;flex-direction:column;gap:5px;padding:2px 6px 4px">
+              <div style="font-size:11px;color:#374151;display:flex;align-items:center;gap:6px">
+                <input type="color" id="f-custom-main" value="#1A3A5C" style="width:28px;height:22px;padding:1px;border:1px solid #d1d5db;border-radius:3px;cursor:pointer">
+                <input type="text" id="f-custom-main-hex" value="#1A3A5C" maxlength="7" placeholder="#1A3A5C" style="width:68px;padding:2px 4px;border:1px solid #d1d5db;border-radius:3px;font-size:11px;font-family:monospace">
+                <span>Main</span>
+              </div>
+              <div style="font-size:11px;color:#374151;display:flex;align-items:center;gap:6px">
+                <input type="color" id="f-custom-intervention" value="#2A8B85" style="width:28px;height:22px;padding:1px;border:1px solid #d1d5db;border-radius:3px;cursor:pointer">
+                <input type="text" id="f-custom-intervention-hex" value="#2A8B85" maxlength="7" placeholder="#2A8B85" style="width:68px;padding:2px 4px;border:1px solid #d1d5db;border-radius:3px;font-size:11px;font-family:monospace">
+                <span>Intervention</span>
+              </div>
+              <div style="font-size:11px;color:#374151;display:flex;align-items:center;gap:6px">
+                <input type="color" id="f-custom-control" value="#B5337A" style="width:28px;height:22px;padding:1px;border:1px solid #d1d5db;border-radius:3px;cursor:pointer">
+                <input type="text" id="f-custom-control-hex" value="#B5337A" maxlength="7" placeholder="#B5337A" style="width:68px;padding:2px 4px;border:1px solid #d1d5db;border-radius:3px;font-size:11px;font-family:monospace">
+                <span>Control</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2 class="section-title">Font</h2>
+          <select id="f-font" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px">
+            <option value="calibri" selected>Calibri</option>
+            <option value="inter">Inter</option>
+            <option value="arial">Arial</option>
+            <option value="times">Times New Roman</option>
+            <option value="georgia">Georgia</option>
+          </select>
+        </section>
+
+        <section class="form-section">
+          <h2 class="section-title">Export</h2>
+
+          <div class="export-group">
+            <span class="export-label">PNG</span>
+            <button id="btn-png-sns" class="btn-export">
+              SNS<br/><small>1024×1024</small>
+            </button>
+            <button id="btn-png-print" class="btn-export btn-export-primary">
+              Journal<br/><small>300 DPI</small>
+            </button>
+          </div>
+
+          <div class="export-group" style="margin-top:12px">
+            <span class="export-label">PDF</span>
+            <button id="btn-pdf-square" class="btn-export">
+              Square<br/><small>90×90 mm</small>
+            </button>
+            <button id="btn-pdf-a4" class="btn-export">
+              A4<br/><small>Portrait</small>
+            </button>
+          </div>
+        </section>
+
+      </aside>
+
+    </div><!-- /app-body -->
+  </div><!-- /app -->
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -57,6 +57,8 @@ const FURUKAWA_PRESET = {
   comparator:        'Waitlist control / TAU / Placebo',
   conclusion:        'CBT-I was more beneficial than controls for depression beyond the sleep domain. With a control depression response rate of 17%, CBT-I yielded a 32% response rate. CBT-I is an effective treatment option for depression comorbid with insomnia.',
   keyLimitations:    'Potential publication bias, heterogeneous control conditions.',
+  findingsMode:      'sof',
+  figureCaption:     '',
   outcomes: [
     { name: 'Depression response', type: 'dichotomous', measureType: 'OR', effectValue: '2.28', ci_95: '(1.67 to 3.12)', cer: '17 per 100', direction: 'favors_intervention', certainty: 'moderate', primary: true,  nStudies: '18', nParticipants: '4762' },
     { name: 'Insomnia remission',  type: 'dichotomous', measureType: 'OR', effectValue: '3.57', ci_95: '(2.48 to 5.14)', cer: '9 per 100',  direction: 'favors_intervention', certainty: 'moderate', primary: true,  nStudies: '17', nParticipants: '4721' },

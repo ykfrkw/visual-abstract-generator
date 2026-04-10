@@ -49,6 +49,8 @@ export function stateToMarkdown(state) {
     `year: ${yamlStr(state.year || '')}`,
     `doi: ${yamlStr(state.doi || '')}`,
     `jama_findings_mode: ${state.jamaFindingsMode || 'donut'}`,
+    `findings_mode: ${state.findingsMode || 'sof'}        # sof | figure`,
+    `figure_caption: ${yamlStr(state.figureCaption || '')}`,
     ``,
     `study_design:`,
     `  type: ${yamlStr(state.studyDesignType || '')}`,
@@ -109,6 +111,8 @@ export function markdownToPreset(text) {
     comparator:          'comparator',
     comparator_detail:   'comparatorDetail',
     jama_findings_mode:  'jamaFindingsMode',
+    findings_mode:       'findingsMode',
+    figure_caption:      'figureCaption',
     conclusion:          'conclusion',
     key_limitations:     'keyLimitations',
   }

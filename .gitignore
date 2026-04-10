@@ -12,6 +12,9 @@ dist/
 .env.local
 .env.*.local
 
+# Upload scripts (contain credentials)
+upload_*.py
+
 # Editor
 .vscode/
 .idea/

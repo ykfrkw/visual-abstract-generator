@@ -346,9 +346,34 @@ export async function buildJamaTemplate(fabric, state, palette) {
     const RX = COLS.R.x + PAD
     const RW = COLS.R.w - PAD * 2
 
-    objects.push(sectionLabel(fabric, FONT, RX, my + 12, 'FINDINGS', ACCENT))
+    const findingsLabel = state.jamaFindingsMode === 'figure'
+      ? (state.figureCaption ? state.figureCaption.toUpperCase() : 'FIGURE')
+      : 'FINDINGS'
+    objects.push(sectionLabel(fabric, FONT, RX, my + 12, findingsLabel, ACCENT))
 
-    if (state.jamaFindingsMode === 'sof') {
+    if (state.jamaFindingsMode === 'figure') {
+      // Large figure in FINDINGS column
+      const limH = state.keyLimitations ? 50 : 0
+      const figX = RX
+      const figY = my + 36
+      const figW = RW
+      const figH = mh - 36 - limH - 8
+      if (state.figureImage) {
+        try {
+          const img = await fabric.Image.fromURL(state.figureImage)
+          fitImage(fabric, img, figX, figY, figW, figH, state.figureImageFit || 'contain')
+          img.set({ left: img.left + (state.figureImageDx || 0), top: img.top + (state.figureImageDy || 0) })
+          objects.push(img)
+        } catch (e) { /* ignore */ }
+      } else {
+        objects.push(new fabric.Text('Upload a figure image \u2192', {
+          left: figX + figW / 2, top: figY + figH / 2 - 8,
+          fontSize: 13, fontFamily: FONT,
+          fill: COLOR_GRAY, originX: 'center',
+          selectable: false, evented: false,
+        }))
+      }
+    } else if (state.jamaFindingsMode === 'sof') {
       // Compact SoF table within FINDINGS column
       const sofObjs = buildSofTableCompact(fabric, { x: RX, y: my + 32, w: RW }, state.outcomes || [], FONT)
       sofObjs.forEach(o => objects.push(o))

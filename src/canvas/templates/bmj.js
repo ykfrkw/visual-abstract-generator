@@ -289,27 +289,61 @@ export async function buildBmjTemplate(fabric, state, palette) {
   // Border overlay on top of colored boxes
   objects.push(secBorderOnly(fabric, cy, ch, BORDER_C))
 
-  // ── 6. OUTCOMES LABEL ──
+  // ── 6. OUTCOMES / FIGURE LABEL ──
+  const isFigureMode = state.findingsMode === 'figure'
   const { y: oly, h: olh } = ZONES.sofLabel
   objects.push(secCard(fabric, oly, olh, BG_SECTION_A_C, BORDER_C))
-  objects.push(new fabric.Text('📊  Outcomes', {
+  const labelText = isFigureMode
+    ? `🖼  ${state.figureCaption || 'Figure'}`
+    : '📊  Outcomes'
+  objects.push(new fabric.Text(labelText, {
     left: PAD + 4, top: oly + 8,
     fontSize: 22, fontFamily: FONT, fontWeight: '700',
     fill: '#1A3A5C', selectable: false, evented: false,
   }))
 
-  // ── 6b. SoF TABLE ──
-  const sty  = ZONES.sofTable.y
-  const sofH = sofTableHeight(state.outcomes || [])
-  objects.push(plainRect(fabric, 0, sty, W, sofH, '#FFFFFF'))
-  objects.push(...buildSofTable(fabric, { x: 0, y: sty, w: W, h: sofH }, state.outcomes || [], FONT, palette))
-
-  // ── 7. CUSTOM SECTIONS + KEY LIMITATIONS ──
-  const footerY    = ZONES.footer.y
+  // ── 6b. SoF TABLE or FIGURE ──
+  const sty       = ZONES.sofTable.y
+  const footerY   = ZONES.footer.y
   const customSecs = state.customSections || []
-  const afterSof   = sty + sofH
   const hasLimBmj  = !!state.keyLimitations
   const LIM_H_BMJ  = hasLimBmj ? 48 : 0
+
+  // Reserve vertical space for custom sections (same allocation as sof mode below)
+  // In sof mode, custom sections occupy the remainder below the table.
+  // In figure mode, we split the available space: figure gets the top, custom sections the bottom.
+  let sofH
+  if (isFigureMode) {
+    // Compute available height for (figure + custom sections) and split
+    const availH = footerY - LIM_H_BMJ - sty
+    const customBlockH = Math.min(customSecs.length * 60, Math.floor(availH * 0.4))
+    sofH = availH - customBlockH
+    objects.push(plainRect(fabric, 0, sty, W, sofH, '#FFFFFF'))
+    if (state.figureImage) {
+      try {
+        const img = await fabric.Image.fromURL(state.figureImage)
+        const pad = 10
+        fitImage(fabric, img, pad, sty + pad, W - pad * 2, sofH - pad * 2,
+                 state.figureImageFit || 'contain')
+        img.set({ left: img.left + (state.figureImageDx || 0), top: img.top + (state.figureImageDy || 0) })
+        objects.push(img)
+      } catch (e) { console.warn('Figure image load failed', e) }
+    } else {
+      objects.push(new fabric.Text('Upload a figure image →', {
+        left: W / 2, top: sty + sofH / 2 - 10,
+        fontSize: 18, fontFamily: FONT,
+        fill: '#9CA3AF', originX: 'center',
+        selectable: false, evented: false,
+      }))
+    }
+  } else {
+    sofH = sofTableHeight(state.outcomes || [])
+    objects.push(plainRect(fabric, 0, sty, W, sofH, '#FFFFFF'))
+    objects.push(...buildSofTable(fabric, { x: 0, y: sty, w: W, h: sofH }, state.outcomes || [], FONT, palette))
+  }
+
+  // ── 7. CUSTOM SECTIONS + KEY LIMITATIONS ──
+  const afterSof   = sty + sofH
 
   // Custom sections occupy the space above Key Limitations
   if (customSecs.length > 0 && afterSof < footerY - LIM_H_BMJ) {

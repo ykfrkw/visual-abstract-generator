@@ -16,6 +16,8 @@ export class FormManager {
     this.populationImage  = null
     this.interventionImage = null
     this.controlImage     = null
+    this.figureImage      = null
+    this.findingsMode     = 'sof'
     this._mode            = 'form'
     this._initListeners()
     this._renderOutcomeRows()
@@ -35,6 +37,8 @@ export class FormManager {
       'f-population-image-dx', 'f-population-image-dy',
       'f-intervention-image-dx', 'f-intervention-image-dy',
       'f-control-image-dx', 'f-control-image-dy',
+      'f-figure-image-dx', 'f-figure-image-dy',
+      'f-figure-caption',
     ]
     ids.forEach(id => {
       document.getElementById(id)?.addEventListener('input', () => this._emit())
@@ -50,6 +54,7 @@ export class FormManager {
       'f-population-image-fill',
       'f-intervention-image-fill',
       'f-control-image-fill',
+      'f-figure-image-fill',
     ]
     checkboxIds.forEach(id => {
       document.getElementById(id)?.addEventListener('change', () => this._emit())
@@ -60,6 +65,7 @@ export class FormManager {
       { inputId: 'f-population-image',   key: 'populationImage'   },
       { inputId: 'f-intervention-image', key: 'interventionImage' },
       { inputId: 'f-control-image',      key: 'controlImage'      },
+      { inputId: 'f-figure-image',       key: 'figureImage'       },
     ]
     imgFields.forEach(({ inputId, key }) => {
       document.getElementById(inputId)?.addEventListener('change', e => {
@@ -90,9 +96,17 @@ export class FormManager {
       { btnId: 'btn-remove-bg-population',   key: 'populationImage'   },
       { btnId: 'btn-remove-bg-intervention', key: 'interventionImage' },
       { btnId: 'btn-remove-bg-control',      key: 'controlImage'      },
+      { btnId: 'btn-remove-bg-figure',       key: 'figureImage'       },
     ]
     removeBgFields.forEach(({ btnId, key }) => {
       document.getElementById(btnId)?.addEventListener('click', () => this._removeBg(key, btnId))
+    })
+
+    // Findings mode toggle (SoF table / Figure)
+    document.querySelectorAll('[data-findings-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this._switchFindingsMode(btn.dataset.findingsMode)
+      })
     })
 
     document.getElementById('btn-add-outcome')?.addEventListener('click', () => {
@@ -354,6 +368,30 @@ export class FormManager {
     if (addBtn) addBtn.style.display = this.customSections.length >= MAX_CUSTOM_SECTIONS ? 'none' : ''
   }
 
+  _applyFindingsModeUI() {
+    const sofPanel = document.getElementById('findings-sof-panel')
+    const figPanel = document.getElementById('findings-figure-panel')
+    const btnSof   = document.getElementById('btn-findings-sof')
+    const btnFig   = document.getElementById('btn-findings-figure')
+    if (this.findingsMode === 'figure') {
+      sofPanel?.classList.add('hidden')
+      figPanel?.classList.remove('hidden')
+      btnFig?.classList.add('mode-tab-active')
+      btnSof?.classList.remove('mode-tab-active')
+    } else {
+      figPanel?.classList.add('hidden')
+      sofPanel?.classList.remove('hidden')
+      btnSof?.classList.add('mode-tab-active')
+      btnFig?.classList.remove('mode-tab-active')
+    }
+  }
+
+  _switchFindingsMode(mode) {
+    this.findingsMode = (mode === 'figure') ? 'figure' : 'sof'
+    this._applyFindingsModeUI()
+    this._emit()
+  }
+
   _switchMode(mode) {
     this._mode = mode
     const formEl = document.getElementById('form-scroll-inner')
@@ -406,6 +444,7 @@ export class FormManager {
       populationImageFit:   cb('f-population-image-fill') ? 'cover' : 'contain',
       interventionImageFit: cb('f-intervention-image-fill') ? 'cover' : 'contain',
       controlImageFit:      cb('f-control-image-fill') ? 'cover' : 'contain',
+      figureImageFit:       cb('f-figure-image-fill') ? 'cover' : 'contain',
       studyDesignType:    v('f-study-design-type'),
       studyDesignDetail:  v('f-study-design-detail'),
       nStudies:           v('f-n-studies'),
@@ -418,6 +457,8 @@ export class FormManager {
       comparator:         v('f-comparator'),
       comparatorDetail:   v('f-comparator-detail'),
       jamaFindingsMode:   v('f-jama-findings-mode') || 'donut',
+      findingsMode:       this.findingsMode || 'sof',
+      figureCaption:      v('f-figure-caption'),
       outcomes:           this.outcomes,
       conclusion:         v('f-conclusion'),
       keyLimitations:     v('f-key-limitations'),
@@ -425,12 +466,15 @@ export class FormManager {
       populationImage:    this.populationImage,
       interventionImage:  this.interventionImage,
       controlImage:       this.controlImage,
+      figureImage:        this.figureImage,
       populationImageDx:    parseInt(v('f-population-image-dx'))    || 0,
       populationImageDy:    parseInt(v('f-population-image-dy'))    || 0,
       interventionImageDx:  parseInt(v('f-intervention-image-dx'))  || 0,
       interventionImageDy:  parseInt(v('f-intervention-image-dy'))  || 0,
       controlImageDx:       parseInt(v('f-control-image-dx'))       || 0,
       controlImageDy:       parseInt(v('f-control-image-dy'))       || 0,
+      figureImageDx:        parseInt(v('f-figure-image-dx'))        || 0,
+      figureImageDy:        parseInt(v('f-figure-image-dy'))        || 0,
     }
   }
 
@@ -455,6 +499,7 @@ export class FormManager {
       'f-comparator-detail':   'comparatorDetail',
       'f-conclusion':          'conclusion',
       'f-key-limitations':     'keyLimitations',
+      'f-figure-caption':      'figureCaption',
     }
     Object.entries(fieldMap).forEach(([id, key]) => {
       const el = document.getElementById(id)
@@ -478,6 +523,7 @@ export class FormManager {
       { id: 'f-population-image-fill',   key: 'populationImageFit'   },
       { id: 'f-intervention-image-fill', key: 'interventionImageFit' },
       { id: 'f-control-image-fill',      key: 'controlImageFit'      },
+      { id: 'f-figure-image-fill',       key: 'figureImageFit'       },
     ]
     cropIds.forEach(({ id, key }) => {
       const el = document.getElementById(id)
@@ -488,10 +534,15 @@ export class FormManager {
     this.populationImage   = preset.populationImage   || null
     this.interventionImage = preset.interventionImage || null
     this.controlImage      = preset.controlImage      || null
-    ;['f-population-image', 'f-intervention-image', 'f-control-image'].forEach(id => {
+    this.figureImage       = preset.figureImage       || null
+    ;['f-population-image', 'f-intervention-image', 'f-control-image', 'f-figure-image'].forEach(id => {
       const el = document.getElementById(id)
       if (el) el.value = ''
     })
+
+    // Findings mode (SoF table / Figure) — apply without emit; final _emit is below
+    this.findingsMode = preset.findingsMode === 'figure' ? 'figure' : 'sof'
+    this._applyFindingsModeUI()
 
     this.outcomes = (preset.outcomes || []).map(o => ({ ...this._emptyOutcome(), ...o }))
     this.customSections = (preset.customSections || []).map(cs => ({
@@ -508,6 +559,7 @@ export class FormManager {
       'f-study-design-type','f-study-design-detail','f-n-studies','f-n-participants',
       'f-population','f-population-detail','f-intervention','f-intervention-abbr',
       'f-intervention-detail','f-comparator','f-comparator-detail','f-conclusion','f-key-limitations',
+      'f-figure-caption',
     ]
     ids.forEach(id => {
       const el = document.getElementById(id)
@@ -522,24 +574,28 @@ export class FormManager {
     this.populationImage   = null
     this.interventionImage = null
     this.controlImage      = null
-    ;['f-population-image', 'f-intervention-image', 'f-control-image'].forEach(id => {
+    this.figureImage       = null
+    ;['f-population-image', 'f-intervention-image', 'f-control-image', 'f-figure-image'].forEach(id => {
       const el = document.getElementById(id)
       if (el) el.value = ''
     })
-    ;['f-population-image-fill', 'f-intervention-image-fill', 'f-control-image-fill'].forEach(id => {
+    ;['f-population-image-fill', 'f-intervention-image-fill', 'f-control-image-fill', 'f-figure-image-fill'].forEach(id => {
       const el = document.getElementById(id)
       if (el) el.checked = false
     })
 
     ;['f-population-image-dx','f-population-image-dy',
       'f-intervention-image-dx','f-intervention-image-dy',
-      'f-control-image-dx','f-control-image-dy'].forEach(id => {
+      'f-control-image-dx','f-control-image-dy',
+      'f-figure-image-dx','f-figure-image-dy'].forEach(id => {
       const el = document.getElementById(id)
       if (el) el.value = '0'
     })
 
     this.outcomes = []
     this.customSections = []
+    this.findingsMode = 'sof'
+    this._applyFindingsModeUI()
     this._renderOutcomeRows()
     this._renderCustomSections()
     this._emit()
